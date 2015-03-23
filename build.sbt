@@ -2,7 +2,7 @@ organization := "me.lessis"
 
 name := "tugboat"
 
-version := "0.2.0"
+version := "0.2.1"
 
 description := "a small boat that maneuvers docker vessels"
 
@@ -36,15 +36,27 @@ buildInfoPackage := "tugboat"
 licenses := Seq(
   ("MIT", url(s"https://github.com/softprops/${name.value}/blob/${version.value}/LICENSE")))
 
-bintraySettings
+//Uncomment for bintray settings
+//bintraySettings
+//
+//bintray.Keys.packageLabels in bintray.Keys.bintray := Seq("docker", "containers")
+//
+//lsSettings
+//
+//LsKeys.tags in LsKeys.lsync := (bintray.Keys.packageLabels in bintray.Keys.bintray).value
+//
+//externalResolvers in LsKeys.lsync := (resolvers in bintray.Keys.bintray).value
 
-bintray.Keys.packageLabels in bintray.Keys.bintray := Seq("docker", "containers")
+lazy val publishToSettings = publishTo <<= version { v: String =>
+  val sealRepo = "https://ci.seal-software.net:44881/"
+  if (v.trim.endsWith("SNAPSHOT"))
+    Some("snapshots" at sealRepo + "content/repositories/snapshots/")
+  else
+    Some("releases" at sealRepo + "content/repositories/releases/")
+}
 
-lsSettings
 
-LsKeys.tags in LsKeys.lsync := (bintray.Keys.packageLabels in bintray.Keys.bintray).value
-
-externalResolvers in LsKeys.lsync := (resolvers in bintray.Keys.bintray).value
+seq(publishToSettings:_*)
 
 pomExtra := (
   <scm>
