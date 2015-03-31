@@ -157,6 +157,10 @@ case class ContainerDetails(
   volumesRW: Map[String, Boolean],
   hostConfig: HostConfig)
 
+object Exec {
+  case class Response(id: String)
+}
+
 case class Record(id: String, created: Long, createdBy: String, size: Long, tags: Seq[String])
 
 case class Top(titles: Seq[String], procs: Seq[Seq[String]])
@@ -420,6 +424,14 @@ object Rep {
           JString(KeyVal(k, v)) <- env
         } yield (k, v)).toMap)).head
   }
+
+  implicit val ExecResponse: Rep[Exec.Response] =
+    new Rep[Exec.Response] {
+      def map = { r => (for {
+        JObject(resp)       <- as.json4s.Json(r)
+        ("Id", JString(id)) <- resp
+      } yield Exec.Response(id)).head }
+    }
 
   implicit val ListOfRecord: Rep[List[Record]] =
     new Rep[List[Record]] {

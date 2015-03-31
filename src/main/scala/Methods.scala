@@ -460,6 +460,33 @@ trait Methods { self: Requests =>
       /** https://docs.docker.com/reference/api/docker_remote_api_v1.15/#attach-to-a-container */
       //def attach = Attach()
 
+      case class Exec(
+        private val _attachStdIn:  Option[Boolean]   = None,
+        private val _attachStdOut: Option[Boolean] = None,
+        private val _attachStdErr: Option[Boolean]  = None,
+        private val _tty: Option[Boolean] = None,
+        private val _cmd: Seq[String] = Seq.empty)
+        extends Docker.Completion[tugboat.Exec.Response] {
+        def attachStdIn(stdIn: Boolean) = copy(_attachStdIn = Some(stdIn))
+        def attachStdOut(stdOut: Boolean) = copy(_attachStdOut = Some(stdOut))
+        def attachStdErr(stdErr: Boolean) = copy(_attachStdErr = Some(stdErr))
+        def tty(tty: Boolean) = copy(_tty = Some(tty))
+        def cmd(cmds: String*) = copy(_cmd = cmds.toSeq)
+
+        def apply[T](handler: Docker.Handler[T]) =
+          request(json.content(base.POST) / id / "exec" << body)(handler)
+
+        def body = json.str(
+          ("AttachStdin" -> _attachStdIn) ~
+          ("AttachStdout" -> _attachStdOut) ~
+          ("AttachStderr" -> _attachStdErr) ~
+          ("Tty" -> _tty) ~
+          ("Cmd" -> Option(_cmd).filter(_.nonEmpty)))
+      }
+
+      /** https://docs.docker.com/reference/api/docker_remote_api_v1.16/#exec-create */
+      def createExec = Exec()
+
       /** https://docs.docker.com/reference/api/docker_remote_api_v1.16/#wait-a-container */
       def await =
         complete[Status](base.POST / id / "wait")
