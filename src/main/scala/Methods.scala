@@ -466,7 +466,7 @@ trait Methods { self: Requests =>
         private val _attachStdErr: Option[Boolean]  = None,
         private val _tty: Option[Boolean] = None,
         private val _cmd: Seq[String] = Seq.empty)
-        extends Docker.Completion[tugboat.Exec.Response] {
+        extends Docker.Completion[tugboat.Exec.Id] {
         def attachStdIn(stdIn: Boolean) = copy(_attachStdIn = Some(stdIn))
         def attachStdOut(stdOut: Boolean) = copy(_attachStdOut = Some(stdOut))
         def attachStdErr(stdErr: Boolean) = copy(_attachStdErr = Some(stdErr))
@@ -688,5 +688,48 @@ trait Methods { self: Requests =>
     def search = Search()
     /** if path is a directory, it will be bundled into a gzipped tar. otherwise we assume a tar file */
     def build(path: File) = Build(path)
+  }
+
+  object exec {
+    private[this] def base = host / "exec"
+
+    case class Start(
+      id: String,
+      private val _detach: Option[Boolean] = None,
+      private val _tty: Option[Boolean] = None
+    ) extends Docker.Stream[tugboat.ExecStream.Output] {
+      override protected def streamer =
+        Docker.Stream.chunk[tugboat.ExecStream.Output]
+
+      def detach(detach: Boolean) = copy(_detach = Some(detach))
+      def tty(tty: Boolean) = copy(_tty = Some(tty))
+
+      def body = json.str(
+        ("Detach" -> _detach) ~
+        ("Tty" -> _tty))
+
+      def apply[T](handler: Docker.Handler[T]) =
+        request(json.content(base.POST) / id / "start" << body)(handler)
+    }
+
+    def start(id: String) = Start(id)
+
+    case class Resize(
+      id: String
+    ) extends Docker.Completion[Unit] {
+      def apply[T](handler: Docker.Handler[T]) =
+        request(json.content(base.POST) / id / "resize")(handler)
+    }
+
+    def resize(id: String) = Resize(id)
+
+    case class Inspect(
+      id: String
+    ) extends Docker.Completion[tugboat.Exec.Details] {
+      def apply[T](handler: Docker.Handler[T]) =
+        request(json.content(base.GET) / id / "json")(handler)
+    }
+
+    def inspect(id: String) = Inspect(id)
   }
 }

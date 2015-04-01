@@ -158,7 +158,25 @@ case class ContainerDetails(
   hostConfig: HostConfig)
 
 object Exec {
-  case class Response(id: String)
+  case class Id(id: String)
+
+  case class Details(
+    ID: String,
+    Running: Boolean,
+    ExitCode: Int,
+    ProcessConfig: ProcessConfig,
+    OpenStdin: Boolean,
+    OpenStdout: Boolean,
+    OpenStderr: Boolean
+  )
+
+  case class ProcessConfig(
+    privileged: Boolean,
+    user: String,
+    tty: Boolean,
+    entrypoint: String,
+    arguments: List[String]
+  )
 }
 
 case class Record(id: String, created: Long, createdBy: String, size: Long, tags: Seq[String])
@@ -425,12 +443,20 @@ object Rep {
         } yield (k, v)).toMap)).head
   }
 
-  implicit val ExecResponse: Rep[Exec.Response] =
-    new Rep[Exec.Response] {
+  implicit val ExecId: Rep[Exec.Id] =
+    new Rep[Exec.Id] {
       def map = { r => (for {
         JObject(resp)       <- as.json4s.Json(r)
         ("Id", JString(id)) <- resp
-      } yield Exec.Response(id)).head }
+      } yield Exec.Id(id)).head }
+    }
+
+  implicit val formats = org.json4s.DefaultFormats
+  implicit val ExecDetail: Rep[Exec.Details] =
+    new Rep[Exec.Details] {
+      def map = { r =>
+        as.json4s.Json(r).extract[Exec.Details]
+      }
     }
 
   implicit val ListOfRecord: Rep[List[Record]] =

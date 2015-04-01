@@ -29,6 +29,10 @@ object Push {
   case class Error(message: String, defaults: String) extends Output
 }
 
+object ExecStream {
+  sealed trait Output
+  case class Message(message: String) extends Output
+}
 /** type class for default representations of streamed output */
 sealed trait StreamRep[T] {
   def map: String => T
@@ -99,6 +103,12 @@ object StreamRep {
         msg, details)).headOption
 
       status.orElse(err).get
+    }
+  }
+
+  implicit val ExecMessages: StreamRep[ExecStream.Output] = new StreamRep[ExecStream.Output] {
+    def map = { str =>
+      ExecStream.Message(str)
     }
   }
 
