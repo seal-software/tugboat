@@ -2,7 +2,7 @@ organization := "me.lessis"
 
 name := "tugboat"
 
-version := "0.2.2"
+version := "0.2.3"
 
 description := "a small boat that maneuvers docker vessels"
 
