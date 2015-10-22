@@ -48,7 +48,7 @@ licenses := Seq(
 //externalResolvers in LsKeys.lsync := (resolvers in bintray.Keys.bintray).value
 
 lazy val publishToSettings = publishTo <<= version { v: String =>
-  val sealRepo = "https://ci.seal-software.net:44881/"
+  val sealRepo = "http://nexus.seal-software.net/"
   if (v.trim.endsWith("SNAPSHOT"))
     Some("snapshots" at sealRepo + "content/repositories/snapshots/")
   else

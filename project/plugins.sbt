@@ -7,4 +7,4 @@ addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.3")
 
 resolvers += "sonatype-releases" at "https://oss.sonatype.org/content/repositories/releases/"
 
-resolvers += "releases" at "https://ci.seal-software.net:44881/content/repositories/releases/"
+resolvers += "releases" at "http://nexus.seal-software.net/content/groups/plublic/"
